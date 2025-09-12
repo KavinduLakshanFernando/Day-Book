@@ -12,10 +12,12 @@ import {
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Image } from "react-native"
-import { router } from 'expo-router';
+import { router, useRouter } from 'expo-router';
 import { login } from '@/services/authService';
+import { useRoute } from '@react-navigation/native';
 
 export default function LoginScreen() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +34,7 @@ export default function LoginScreen() {
       // Replace this with your actual login logic
       await login(email, password);
       console.log('Login successful');
+      router.push('/(dashboard)/homepage');
       
     } catch (error) {
       Alert.alert('Error', 'Invalid email or password');
