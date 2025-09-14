@@ -1,90 +1,121 @@
-import React from "react";
-import { View, Text, TouchableOpacity, Image, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HomeIcon, BookOpenIcon, Cog6ToothIcon, PlusIcon } from "react-native-heroicons/outline";
 import { router } from "expo-router";
+import { Edit2, Trash2 } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { fetchNotes } from "@/services/noteService";
+import { Note } from "@/type/note";
+import { auth } from "@/firebase";
 
-export interface Note {
-  id?: string;
-  title: string;
-  description: string;
-  date: string;
-  createdAt: string;
-}
+export default function DiaryAppHomePage() {
+  const bgGradient = ["#111827", "#1f2937"];
+  const cardBg = "#1F2937";
+  const cardBorder = "#374151";
+  const textColor = "#F3F4F6";
+  const textGray = "#D1D5DB";
 
-const sampleNotes: Note[] = [
-  {
-    id: "1",
-    title: "A Day of Reflection",
-    description: "Today, I spent some time reflecting on my goals and aspirations. It's important to take a step back and assess where I'm headed.",
-    date: new Date().toDateString(),
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: "2",
-    title: "Nature's Embrace",
-    description: "I took a walk in the park today and felt a sense of peace. Nature has a way of grounding me and reminding me of the simple joys in life.",
-    date: new Date().toDateString(),
-    createdAt: new Date().toISOString(),
-  },
-];
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(false);
 
-export default function DiaryApp() {
+  useEffect(() => {
+  const unsubscribe = auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      try {
+        const fetchedNotes = await fetchNotes(user.uid);
+        setNotes(fetchedNotes);
+      } catch (err) {
+        console.error("Error fetching notes:", err);
+      }
+    } else {
+      console.log("No user logged in");
+      setNotes([]);
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
+
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-100">
-      {/* Header */}
-      <View className="flex-row items-center justify-between p-4">
-        <View className="w-12" />
-        <Text className="text-xl font-bold text-gray-900 flex-1 text-center">My Diary</Text>
-        <TouchableOpacity className="w-12 items-end">
-          <Cog6ToothIcon size={28} color="#111418" />
-        </TouchableOpacity>
-      </View>
+    <SafeAreaView className="flex-1">
+      <LinearGradient colors={bgGradient} style={{ flex: 1 }}>
+        {/* Header */}
+        <View className="flex-row items-center justify-between p-4">
+          <Text className="text-xl font-bold text-white flex-1 text-center">My Diary</Text>
+          <TouchableOpacity className="w-12 items-end">
+            <Cog6ToothIcon size={28} color="#F3F4F6" />
+          </TouchableOpacity>
+        </View>
 
-      {/* Recent Entries */}
-      <ScrollView className="flex-1">
-        <Text className="text-2xl font-bold text-gray-900 px-4 pt-2">Recent Entries</Text>
+        {/* Recent Entries */}
+        <ScrollView className="flex-1 px-4">
+          <Text className="text-2xl font-bold mt-4 mb-2 text-white">Recent Entries</Text>
 
-        {sampleNotes.map((note) => (
-          <View key={note.id} className="px-4 py-2">
-            <View className="flex-row items-start gap-4 bg-white p-4 rounded-xl shadow">
-              <View className="flex-1">
-                <Text className="text-lg font-bold text-gray-900">{note.title}</Text>
-                <Text className="text-base text-gray-500 mt-1">{note.description}</Text>
-                <Text className="text-xs text-gray-400 mt-1">{note.date}</Text>
-              </View>
-              <Image
-                source={{ uri: "https://via.placeholder.com/80" }}
-                className="w-20 h-20 rounded-lg"
-              />
+          {loading ? (
+            <View className="flex-1 justify-center items-center mt-10">
+              <ActivityIndicator size="large" color="#2563EB" />
+              <Text className="text-gray-400 mt-2">Loading notes...</Text>
             </View>
-          </View>
-        ))}
-      </ScrollView>
+          ) : notes.length === 0 ? (
+            <Text className="text-gray-400 text-center mt-10">No notes yet. Start by adding one!</Text>
+          ) : (
+            notes.map((note) => (
+              <View key={note.id} className="mb-4">
+                <View
+                  style={{ backgroundColor: cardBg, borderColor: cardBorder }}
+                  className="rounded-3xl p-4 shadow-lg border"
+                >
+                  <Text style={{ color: textColor }} className="text-lg font-bold">{note.title}</Text>
+                  <Text style={{ color: textGray }} className="text-sm mt-2 leading-5">{note.description}</Text>
 
-      {/* Floating Add Button */}
-      <TouchableOpacity
-        className="absolute bottom-20 right-5 bg-blue-600 w-16 h-16 rounded-full items-center justify-center shadow-lg"
-        onPress={() => router.push("/(dashboard)/note/addNotepage")}
-      >
-        <PlusIcon size={32} color="white" />
-      </TouchableOpacity>
+                  <View className="flex-row justify-between items-center mt-3">
+                    <Text style={{ color: textGray }} className="text-xs">{note.date}</Text>
+                    <View className="flex-row space-x-4">
+                      <TouchableOpacity onPress={() => console.log("Edit", note.id)}>
+                        <Edit2 size={22} color="#3B82F6" />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => console.log("Delete", note.id)}>
+                        <Trash2 size={22} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            ))
+          )}
+        </ScrollView>
 
-      {/* Bottom Navigation */}
-      <View className="flex-row border-t border-gray-200 bg-white px-4 py-2">
-        <TouchableOpacity className="flex-1 items-center">
-          <HomeIcon size={24} color="#1173d4" />
-          <Text className="text-xs font-bold text-[#1173d4]">Home</Text>
+        {/* Floating Add Button */}
+        <TouchableOpacity
+          className="absolute bottom-24 right-5 w-16 h-16 rounded-full shadow-lg"
+          onPress={() => router.push("/(dashboard)/note/addNotepage")}
+        >
+          <LinearGradient
+            colors={["#2563EB", "#1D4ED8"]}
+            style={{ flex: 1, borderRadius: 32, alignItems: "center", justifyContent: "center" }}
+          >
+            <PlusIcon size={32} color="white" />
+          </LinearGradient>
         </TouchableOpacity>
-        <TouchableOpacity className="flex-1 items-center">
-          <BookOpenIcon size={24} color="#617589" />
-          <Text className="text-xs text-gray-500">Entries</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className="flex-1 items-center">
-          <Cog6ToothIcon size={24} color="#617589" />
-          <Text className="text-xs text-gray-500">Settings</Text>
-        </TouchableOpacity>
-      </View>
+
+        {/* Bottom Navigation */}
+        <View style={{ backgroundColor: "#111827" }} className="flex-row border-t border-gray-700 px-4 py-2">
+          <TouchableOpacity className="flex-1 items-center">
+            <HomeIcon size={24} color="#2563EB" />
+            <Text className="text-xs font-bold text-blue-500">Home</Text>
+          </TouchableOpacity>
+          <TouchableOpacity className="flex-1 items-center" onPress={() => router.push("/calender")}>
+            <BookOpenIcon size={24} color="#9CA3AF" />
+            <Text className="text-xs text-gray-400">Entries</Text>
+          </TouchableOpacity>
+          <TouchableOpacity className="flex-1 items-center">
+            <Cog6ToothIcon size={24} color="#9CA3AF" />
+            <Text className="text-xs text-gray-400">Settings</Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
     </SafeAreaView>
   );
 }

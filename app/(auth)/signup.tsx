@@ -22,15 +22,15 @@ export default function SignupScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
-  const handleEmailChange = (text: string) => {
-    setEmail(text);
-  };
+  // Permanent Dark Theme Colors
+  const bgColor = '#111827';
+  const inputBg = '#1F2937';
+  const inputBorder = '#374151';
+  const textColor = '#F3F4F6';
+  const textGray = '#D1D5DB';
+  const buttonColor = '#2563EB';
+  const buttonActiveColor = '#1D4ED8';
 
-  const handlePasswordChange = (text: string) => {
-    setPassword(text);
-  };
-
-  
   const handleSignup = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all fields');
@@ -53,16 +53,16 @@ export default function SignupScreen() {
     }
 
     setIsLoading(true);
-    // Simulate API call
 
     try {
-      await register (email, password);
+      await register(email, password);
       route.push('/(auth)/login');
     } catch (error) {
       Alert.alert('Error', 'Failed to create account. Please try again.');
       setIsLoading(false);
       return;
     }
+
     setTimeout(() => {
       setIsLoading(false);
       Alert.alert('Success', 'Account created successfully!');
@@ -72,167 +72,182 @@ export default function SignupScreen() {
   return (
     <KeyboardAvoidingView 
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1"
+      style={{ flex: 1, backgroundColor: bgColor }}
     >
-      <StatusBar style="dark" />
+      <StatusBar style="light" />
       <ScrollView 
-        contentContainerStyle={{ flexGrow: 1 }}
-        className="bg-white"
+        contentContainerStyle={{ flexGrow: 1, padding: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="flex-1 justify-center px-6 py-12">
-          {/* Header */}
-          <View className="mb-8">
-            <Text className="text-3xl font-bold text-gray-900 text-center mb-2">
-              Create Account
-            </Text>
-            <Text className="text-gray-600 text-center text-base">
-              Sign up to get started
+        {/* Header */}
+        <View className="mb-8 mt-12">
+          <Text style={{ color: textColor, fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 }}>
+            Create Account
+          </Text>
+          <Text style={{ color: textGray, textAlign: 'center', fontSize: 16 }}>
+            Sign up to get started
+          </Text>
+        </View>
+
+        {/* Signup Form */}
+        <View className="space-y-5">
+          {/* Full Name */}
+          <View>
+            <Text style={{ color: textGray, fontSize: 14, marginBottom: 4 }}>Full Name</Text>
+            <TextInput
+              value={fullName}
+              onChangeText={setFullName}
+              placeholder="Enter your full name"
+              placeholderTextColor="#9CA3AF"
+              autoCapitalize="words"
+              autoCorrect={false}
+              style={{
+                width: '100%',
+                padding: 12,
+                backgroundColor: inputBg,
+                borderColor: inputBorder,
+                borderWidth: 1,
+                borderRadius: 10,
+                color: textColor
+              }}
+            />
+          </View>
+
+          {/* Email */}
+          <View>
+            <Text style={{ color: textGray, fontSize: 14, marginBottom: 4 }}>Email Address</Text>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder="Enter your email"
+              placeholderTextColor="#9CA3AF"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={{
+                width: '100%',
+                padding: 12,
+                backgroundColor: inputBg,
+                borderColor: inputBorder,
+                borderWidth: 1,
+                borderRadius: 10,
+                color: textColor
+              }}
+            />
+          </View>
+
+          {/* Password */}
+          <View>
+            <Text style={{ color: textGray, fontSize: 14, marginBottom: 4 }}>Password</Text>
+            <TextInput
+              value={password}
+              onChangeText={setPassword}
+              placeholder="Create a password"
+              placeholderTextColor="#9CA3AF"
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={{
+                width: '100%',
+                padding: 12,
+                backgroundColor: inputBg,
+                borderColor: inputBorder,
+                borderWidth: 1,
+                borderRadius: 10,
+                color: textColor
+              }}
+            />
+            <Text style={{ color: textGray, fontSize: 12, marginTop: 4 }}>
+              Must be at least 6 characters
             </Text>
           </View>
 
-          {/* Signup Form */}
-          <View className="space-y-5">
-            {/* Full Name Input */}
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">
-                Full Name
-              </Text>
-              <TextInput
-                value={fullName}
-                onChangeText={setFullName}
-                placeholder="Enter your full name"
-                autoCapitalize="words"
-                autoCorrect={false}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:border-blue-500 focus:bg-white"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
+          {/* Confirm Password */}
+          <View>
+            <Text style={{ color: textGray, fontSize: 14, marginBottom: 4 }}>Confirm Password</Text>
+            <TextInput
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder="Confirm your password"
+              placeholderTextColor="#9CA3AF"
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              style={{
+                width: '100%',
+                padding: 12,
+                backgroundColor: inputBg,
+                borderColor: inputBorder,
+                borderWidth: 1,
+                borderRadius: 10,
+                color: textColor
+              }}
+            />
+          </View>
 
-            {/* Email Input */}
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </Text>
-              <TextInput
-                value={email}
-                onChangeText={handleEmailChange}
-                placeholder="Enter your email"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                autoCorrect={false}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:border-blue-500 focus:bg-white"
-                placeholderTextColor="#9CA3AF"
-              />
+          {/* Terms */}
+          <TouchableOpacity 
+            onPress={() => setAcceptTerms(!acceptTerms)}
+            style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}
+          >
+            <View style={{
+              width: 20, height: 20,
+              borderWidth: 2,
+              borderColor: acceptTerms ? buttonColor : inputBorder,
+              backgroundColor: acceptTerms ? buttonColor : 'transparent',
+              borderRadius: 4,
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginRight: 8
+            }}>
+              {acceptTerms && <Text style={{ color: '#fff', fontSize: 12 }}>✓</Text>}
             </View>
+            <Text style={{ color: textGray, fontSize: 14 }}>
+              I agree to the <Text style={{ color: buttonColor }}>Terms of Service</Text> and <Text style={{ color: buttonColor }}>Privacy Policy</Text>
+            </Text>
+          </TouchableOpacity>
 
-            {/* Password Input */}
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">
-                Password
-              </Text>
-              <TextInput
-                value={password}
-                onChangeText={handlePasswordChange}
-                placeholder="Create a password"
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:border-blue-500 focus:bg-white"
-                placeholderTextColor="#9CA3AF"
-              />
-              <Text className="text-xs text-gray-500 mt-1">
-                Must be at least 6 characters
-              </Text>
-            </View>
+          {/* Signup Button */}
+          <TouchableOpacity
+            onPress={handleSignup}
+            disabled={isLoading}
+            style={{
+              width: '100%',
+              padding: 14,
+              borderRadius: 10,
+              marginTop: 12,
+              backgroundColor: isLoading ? '#6B7280' : buttonColor,
+              alignItems: 'center'
+            }}
+          >
+            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
+              {isLoading ? 'Creating Account...' : 'Create Account'}
+            </Text>
+          </TouchableOpacity>
 
-            {/* Confirm Password Input */}
-            <View>
-              <Text className="text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </Text>
-              <TextInput
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                placeholder="Confirm your password"
-                secureTextEntry
-                autoCapitalize="none"
-                autoCorrect={false}
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:border-blue-500 focus:bg-white"
-                placeholderTextColor="#9CA3AF"
-              />
-            </View>
+          {/* Divider */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 16 }}>
+            <View style={{ flex: 1, height: 1, backgroundColor: inputBorder }} />
+            <Text style={{ marginHorizontal: 8, color: textGray, fontSize: 12 }}>Or sign up with</Text>
+            <View style={{ flex: 1, height: 1, backgroundColor: inputBorder }} />
+          </View>
 
-            {/* Terms and Conditions */}
-            <TouchableOpacity 
-              onPress={() => setAcceptTerms(!acceptTerms)}
-              className="flex-row items-center mt-4"
-            >
-              <View className={`w-5 h-5 border-2 rounded mr-3 items-center justify-center ${
-                acceptTerms ? 'bg-blue-600 border-blue-600' : 'border-gray-300'
-              }`}>
-                {acceptTerms && (
-                  <Text className="text-white text-xs font-bold">✓</Text>
-                )}
-              </View>
-              <View className="flex-1">
-                <Text className="text-sm text-gray-600">
-                  I agree to the{' '}
-                  <Text className="text-blue-600 font-medium">Terms of Service</Text>
-                  {' '}and{' '}
-                  <Text className="text-blue-600 font-medium">Privacy Policy</Text>
-                </Text>
-              </View>
+          {/* Social Buttons */}
+          <View style={{ space: 12 }}>
+            <TouchableOpacity style={{ width: '100%', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: inputBorder, alignItems: 'center' }}>
+              <Text style={{ color: textGray, fontSize: 14 }}>Continue with Google</Text>
             </TouchableOpacity>
-
-            {/* Signup Button */}
-            <TouchableOpacity
-              onPress={handleSignup}
-              disabled={isLoading}
-              className={`w-full py-3 rounded-lg mt-6 ${
-                isLoading 
-                  ? 'bg-gray-400' 
-                  : 'bg-blue-600 active:bg-blue-700'
-              }`}
-            >
-              <Text className="text-white text-center text-base font-semibold">
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </Text>
+            <TouchableOpacity style={{ width: '100%', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: inputBorder, alignItems: 'center' }}>
+              <Text style={{ color: textGray, fontSize: 14 }}>Continue with Apple</Text>
             </TouchableOpacity>
+          </View>
 
-            {/* Divider */}
-            <View className="flex-row items-center my-6">
-              <View className="flex-1 h-px bg-gray-300" />
-              <Text className="px-4 text-gray-500 text-sm">Or sign up with</Text>
-              <View className="flex-1 h-px bg-gray-300" />
-            </View>
-
-            {/* Social Signup Buttons */}
-            <View className="space-y-3">
-              <TouchableOpacity className="w-full py-3 border border-gray-300 rounded-lg flex-row items-center justify-center">
-                <Text className="text-gray-700 text-base font-medium ml-2">
-                  Continue with Google
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity className="w-full py-3 border border-gray-300 rounded-lg flex-row items-center justify-center">
-                <Text className="text-gray-700 text-base font-medium ml-2">
-                  Continue with Apple
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* Login Link */}
-            <View className="flex-row justify-center mt-6">
-              <Text className="text-gray-600 text-base">
-                Already have an account?{' '}
-              </Text>
-              <TouchableOpacity>
-                <Text className="text-blue-600 text-base font-medium">
-                  Sign In
-                </Text>
-              </TouchableOpacity>
-            </View>
+          {/* Login Link */}
+          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
+            <Text style={{ color: textGray, fontSize: 14 }}>Already have an account? </Text>
+            <TouchableOpacity onPress={() => route.push('/(auth)/login')}>
+              <Text style={{ color: buttonColor, fontSize: 14, fontWeight: '600' }}>Sign In</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
