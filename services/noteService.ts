@@ -1,6 +1,6 @@
 import { auth, db } from "@/firebase";
 import { Note } from "@/type/note";
-import { addDoc, collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDocs, orderBy, query, updateDoc, where } from "firebase/firestore";
 
 export const noteRef = collection(db, "notes");
 
@@ -29,3 +29,22 @@ export const fetchNotes = async (uId: string): Promise<Note[]> => {
         return [];
     }
 };
+
+export const deleteNote = async (id: string) => {
+    try {
+        const docRef = doc(db, "notes", id);
+        return  deleteDoc(docRef);
+    } catch (error) {
+        console.error("Error deleting note:", error);
+    }
+}
+
+export const updateNote = async (id: string, note: Note) => {
+    try {
+        const notedocRef = doc(db, "notes", id);
+        const { id: _id, ...noteData } = note
+        return updateDoc(notedocRef, noteData)
+    } catch (error) {
+        console.error("Error updating note:", error);
+    }
+}

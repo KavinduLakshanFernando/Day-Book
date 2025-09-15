@@ -1,14 +1,22 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableWithoutFeedback, Animated, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableWithoutFeedback, Animated, ActivityIndicator, Touchable } from "react-native";
 import { Calendar } from "react-native-calendars";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { saveNote } from "@/services/noteService";
+import { Note } from "@/type/note";
 
 const CalendarScreen = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  const [note, setNote] = useState({ title: "", description: "", date: "" });
+  const [note, setNote] = useState<Note>({
+    id: "",
+    title: "",
+    description: "",
+    date: "",
+    createdAt: "",
+  });
   const [loading, setLoading] = useState(false);
   const scale = new Animated.Value(1);
 
@@ -22,31 +30,25 @@ const CalendarScreen = () => {
     setNote({ ...note, [field]: value });
   };
 
-  const saveNote = async (note: { title: string; description: string; date: string; }) => {
-        if (note.title && note.description) {
-              try {
-                let response = await saveNote(note);
-                router.push("/(dashboard)/homepage");
-              } catch (error) {
-                console.error("Error saving note:", error);
-                alert("Failed to save note.");
-              }
-            } else {
-              alert("Please fill in all fields.");
-            }
+  const handleSave = async () => {
+      if (note.title && note.description) {
+        try {
+          setLoading(true);
+          let response = await saveNote(note);
+          console.log("Note saved with ID:", response?.id);
+          router.push("/(dashboard)/homepage");
+        } catch (error) {
+          console.error("Error saving note:", error);
+          alert("Failed to save note.");
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        alert("Please fill in all fields.");
+      }
     };
-  const onPress = () => {
-    setLoading(true);
-    console.log("Saving note:", note);
-    saveNote(note);
-    // simulate save
-
-    setTimeout(() => {
-      setLoading(false);
-      setShowForm(false);
-      setNote({ title: "", description: "", date: "" });
-    }, 1000);
-  };
+  
+  
 
   return (
     <LinearGradient colors={["#111827", "#1F2937", "#1E293B"]} style={{ flex: 1 }}>
@@ -128,7 +130,7 @@ const CalendarScreen = () => {
 
           {/* Save Button */}
           <TouchableWithoutFeedback
-            onPress={onPress}
+            onPress={handleSave}
             disabled={loading}
             onPressIn={() => Animated.spring(scale, { toValue: 0.95, useNativeDriver: true }).start()}
             onPressOut={() => Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start()}

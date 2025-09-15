@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HomeIcon, BookOpenIcon, Cog6ToothIcon, PlusIcon } from "react-native-heroicons/outline";
 import { router } from "expo-router";
 import { Edit2, Trash2 } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { fetchNotes } from "@/services/noteService";
+import { deleteNote, fetchNotes } from "@/services/noteService";
 import { Note } from "@/type/note";
-import { auth } from "@/firebase";
+import { auth, db } from "@/firebase";
+import { collection, onSnapshot } from "firebase/firestore";
 
 export default function DiaryAppHomePage() {
   const bgGradient = ["#111827", "#1f2937"];
@@ -20,23 +21,46 @@ export default function DiaryAppHomePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-  const unsubscribe = auth.onAuthStateChanged(async (user) => {
-    if (user) {
-      try {
-        const fetchedNotes = await fetchNotes(user.uid);
-        setNotes(fetchedNotes);
-      } catch (err) {
-        console.error("Error fetching notes:", err);
-      }
-    } else {
-      console.log("No user logged in");
-      setNotes([]);
-    }
-  });
+  setLoading(true);
 
+  const unsubscribe = onSnapshot(
+    collection(db, "notes"),
+    (querySnapshot) => {
+      const allNotes = querySnapshot.docs
+        .filter((doc) => doc.data().uId === auth.currentUser?.uid)
+        .map(
+          (doc) =>
+            ({
+            
+              ...doc.data(), id: doc.id
+            } as Note)
+
+        )
+        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+      console.log("Fetched notes:", allNotes);
+      // Update state
+
+      setNotes(allNotes);
+      setLoading(false);
+    }
+  );
+
+  // cleanup function
   return () => unsubscribe();
 }, []);
 
+
+
+const handleDelete = async (id: string) => {
+  console.log("Delete", id);
+  try {
+    await deleteNote(id);
+    Alert.alert("Success", "Note deleted successfully");
+  } catch (error) {
+    console.error("Error deleting note:", error);
+    Alert.alert("Error", "Failed to delete note");
+  }
+};
 
   return (
     <SafeAreaView className="flex-1">
@@ -76,7 +100,7 @@ export default function DiaryAppHomePage() {
                       <TouchableOpacity onPress={() => console.log("Edit", note.id)}>
                         <Edit2 size={22} color="#3B82F6" />
                       </TouchableOpacity>
-                      <TouchableOpacity onPress={() => console.log("Delete", note.id)}>
+                      <TouchableOpacity onPress={() => handleDelete(note.id || "")}>
                         <Trash2 size={22} color="#EF4444" />
                       </TouchableOpacity>
                     </View>
@@ -92,7 +116,7 @@ export default function DiaryAppHomePage() {
           className="absolute bottom-24 right-5 w-16 h-16 rounded-full shadow-lg"
           onPress={() => router.push("/(dashboard)/note/addNotepage")}
         >
-          <LinearGradient
+          <LinearGradient 
             colors={["#2563EB", "#1D4ED8"]}
             style={{ flex: 1, borderRadius: 32, alignItems: "center", justifyContent: "center" }}
           >

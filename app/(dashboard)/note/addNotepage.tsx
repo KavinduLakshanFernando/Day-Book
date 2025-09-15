@@ -1,11 +1,11 @@
-import { saveNote } from "@/services/noteService";
+import { deleteNote, saveNote } from "@/services/noteService";
 import { Note } from "@/type/note";
 import React, { useRef, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Animated, TouchableWithoutFeedback, ActivityIndicator } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 
-const AddNoteDark = () => {
+const AddNote = () => {
   const scale = useRef(new Animated.Value(1)).current;
 
   const [note, setNote] = useState<Note>({
@@ -45,6 +45,8 @@ const AddNoteDark = () => {
       alert("Please fill in all fields.");
     }
   };
+
+
   const [loading, setLoading] = useState(false);
 
   const onPress = async () => {
@@ -114,4 +116,5 @@ const AddNoteDark = () => {
   );
 };
 
-export default AddNoteDark;
+export default AddNote;
+
