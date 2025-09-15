@@ -1,54 +1,87 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  Alert,
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  ScrollView
+  ScrollView,
+  Pressable,
+  StatusBar, Image
 } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { register } from '@/services/authService';
 import { useRouter } from 'expo-router';
+import { register } from '@/services/authService';
+import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
-export default function SignupScreen() {
-  const route = useRouter();
+export default function SignupScreenLight() {
+  const router = useRouter();
+
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Permanent Dark Theme Colors
-  const bgColor = '#111827';
-  const inputBg = '#1F2937';
-  const inputBorder = '#374151';
-  const textColor = '#F3F4F6';
-  const textGray = '#D1D5DB';
-  const buttonColor = '#2563EB';
-  const buttonActiveColor = '#1D4ED8';
+  // Toast config
+  const toastConfig = {
+    success: (props: any) => (
+        <BaseToast
+            {...props}
+            style={{ borderLeftColor: '#10B981', backgroundColor: '#D1FAE5', borderRadius: 10, marginHorizontal: 10 }}
+            contentContainerStyle={{ paddingHorizontal: 15 }}
+            text1Style={{ fontSize: 16, fontWeight: 'bold', color: '#065F46' }}
+            text2Style={{ fontSize: 14, color: '#065F46' }}
+        />
+    ),
+    error: (props: any) => (
+        <ErrorToast
+            {...props}
+            style={{ borderLeftColor: '#EF4444', backgroundColor: '#FEE2E2', borderRadius: 10, marginHorizontal: 10 }}
+            contentContainerStyle={{ paddingHorizontal: 15 }}
+            text1Style={{ fontSize: 16, fontWeight: 'bold', color: '#B91C1C' }}
+            text2Style={{ fontSize: 14, color: '#B91C1C' }}
+        />
+    ),
+  };
 
   const handleSignup = async () => {
     if (!fullName || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+      Toast.show({
+        type: 'error',
+        text1: 'Missing Fields',
+        text2: 'Please fill in all fields',
+        position: 'top',
+        topOffset: 50,
+        visibilityTime: 3000,
+      });
       return;
     }
 
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-      return;
-    }
-
-    if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters long');
+      Toast.show({
+        type: 'error',
+        text1: 'Password Mismatch',
+        text2: 'Passwords do not match',
+        position: 'top',
+        topOffset: 50,
+        visibilityTime: 3000,
+      });
       return;
     }
 
     if (!acceptTerms) {
-      Alert.alert('Error', 'Please accept the terms and conditions');
+      Toast.show({
+        type: 'error',
+        text1: 'Terms Not Accepted',
+        text2: 'Please accept the terms & conditions',
+        position: 'top',
+        topOffset: 50,
+        visibilityTime: 3000,
+      });
       return;
     }
 
@@ -56,201 +89,145 @@ export default function SignupScreen() {
 
     try {
       await register(email, password);
-      route.push('/(auth)/login');
+      Toast.show({
+        type: 'success',
+        text1: 'Account Created',
+        text2: 'Welcome aboard!',
+        position: 'top',
+        topOffset: 50,
+        visibilityTime: 3000,
+      });
+      router.push('/(auth)/login');
     } catch (error) {
-      Alert.alert('Error', 'Failed to create account. Please try again.');
+      Toast.show({
+        type: 'error',
+        text1: 'Signup Failed',
+        text2: 'Something went wrong. Try again.',
+        position: 'top',
+        topOffset: 50,
+        visibilityTime: 3000,
+      });
       setIsLoading(false);
-      return;
     }
-
-    setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert('Success', 'Account created successfully!');
-    }, 2000);
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={{ flex: 1, backgroundColor: bgColor }}
-    >
-      <StatusBar style="light" />
-      <ScrollView 
-        contentContainerStyle={{ flexGrow: 1, padding: 24 }}
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1 bg-white"
       >
-        {/* Header */}
-        <View className="mb-8 mt-12">
-          <Text style={{ color: textColor, fontSize: 28, fontWeight: 'bold', textAlign: 'center', marginBottom: 4 }}>
-            Create Account
-          </Text>
-          <Text style={{ color: textGray, textAlign: 'center', fontSize: 16 }}>
-            Sign up to get started
-          </Text>
-        </View>
-
-        {/* Signup Form */}
-        <View className="space-y-5">
-          {/* Full Name */}
-          <View>
-            <Text style={{ color: textGray, fontSize: 14, marginBottom: 4 }}>Full Name</Text>
-            <TextInput
-              value={fullName}
-              onChangeText={setFullName}
-              placeholder="Enter your full name"
-              placeholderTextColor="#9CA3AF"
-              autoCapitalize="words"
-              autoCorrect={false}
-              style={{
-                width: '100%',
-                padding: 12,
-                backgroundColor: inputBg,
-                borderColor: inputBorder,
-                borderWidth: 1,
-                borderRadius: 10,
-                color: textColor
-              }}
+        <StatusBar style="dark" />
+        <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="p-6">
+          <View className="flex items-center justify-center mb-6">
+            <Image
+                source={require("../../assets/images/signup.jpg")}
+                style={{ width: 200, height: 200 }} // podi & visible size
+                resizeMode="contain"
             />
           </View>
-
-          {/* Email */}
-          <View>
-            <Text style={{ color: textGray, fontSize: 14, marginBottom: 4 }}>Email Address</Text>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              placeholderTextColor="#9CA3AF"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              style={{
-                width: '100%',
-                padding: 12,
-                backgroundColor: inputBg,
-                borderColor: inputBorder,
-                borderWidth: 1,
-                borderRadius: 10,
-                color: textColor
-              }}
-            />
-          </View>
-
-          {/* Password */}
-          <View>
-            <Text style={{ color: textGray, fontSize: 14, marginBottom: 4 }}>Password</Text>
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Create a password"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              style={{
-                width: '100%',
-                padding: 12,
-                backgroundColor: inputBg,
-                borderColor: inputBorder,
-                borderWidth: 1,
-                borderRadius: 10,
-                color: textColor
-              }}
-            />
-            <Text style={{ color: textGray, fontSize: 12, marginTop: 4 }}>
-              Must be at least 6 characters
+          {/* Header */}
+          <View className="mb-8">
+            <Text className="text-2xl italic font-bold text-gray-600 text-center mb-2">
+              Create Account
+            </Text>
+            <Text className="text-gray-500 text-center text-base">
+              Sign up to get started
             </Text>
           </View>
 
-          {/* Confirm Password */}
-          <View>
-            <Text style={{ color: textGray, fontSize: 14, marginBottom: 4 }}>Confirm Password</Text>
-            <TextInput
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              placeholder="Confirm your password"
-              placeholderTextColor="#9CA3AF"
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              style={{
-                width: '100%',
-                padding: 12,
-                backgroundColor: inputBg,
-                borderColor: inputBorder,
-                borderWidth: 1,
-                borderRadius: 10,
-                color: textColor
-              }}
-            />
-          </View>
-
-          {/* Terms */}
-          <TouchableOpacity 
-            onPress={() => setAcceptTerms(!acceptTerms)}
-            style={{ flexDirection: 'row', alignItems: 'center', marginTop: 8 }}
-          >
-            <View style={{
-              width: 20, height: 20,
-              borderWidth: 2,
-              borderColor: acceptTerms ? buttonColor : inputBorder,
-              backgroundColor: acceptTerms ? buttonColor : 'transparent',
-              borderRadius: 4,
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginRight: 8
-            }}>
-              {acceptTerms && <Text style={{ color: '#fff', fontSize: 12 }}>✓</Text>}
+          {/* Form */}
+          <View className="space-y-5">
+            {/* Full Name */}
+            <View>
+              <Text className="text-gray-500 text-sm mb-1">Full Name</Text>
+              <View className="flex-row items-center bg-gray-100 border border-gray-300 rounded-lg px-3 py-2">
+                <MaterialCommunityIcons name="account-outline" size={22} color="#6B7280" className="mr-2" />
+                <TextInput
+                    value={fullName}
+                    onChangeText={setFullName}
+                    placeholder="Enter your full name"
+                    placeholderTextColor="#9CA3AF"
+                    autoCapitalize="words"
+                    className="flex-1 text-gray-900"
+                />
+              </View>
             </View>
-            <Text style={{ color: textGray, fontSize: 14 }}>
-              I agree to the <Text style={{ color: buttonColor }}>Terms of Service</Text> and <Text style={{ color: buttonColor }}>Privacy Policy</Text>
-            </Text>
-          </TouchableOpacity>
 
-          {/* Signup Button */}
-          <TouchableOpacity
-            onPress={handleSignup}
-            disabled={isLoading}
-            style={{
-              width: '100%',
-              padding: 14,
-              borderRadius: 10,
-              marginTop: 12,
-              backgroundColor: isLoading ? '#6B7280' : buttonColor,
-              alignItems: 'center'
-            }}
-          >
-            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
-              {isLoading ? 'Creating Account...' : 'Create Account'}
-            </Text>
-          </TouchableOpacity>
+            {/* Email */}
+            <View>
+              <Text className="text-gray-500 text-sm mb-1">Email</Text>
+              <View className="flex-row items-center bg-gray-100 border border-gray-300 rounded-lg px-3 py-2">
+                <MaterialCommunityIcons name="email-outline" size={22} color="#6B7280" className="mr-2" />
+                <TextInput
+                    value={email}
+                    onChangeText={setEmail}
+                    placeholder="Enter your email"
+                    placeholderTextColor="#9CA3AF"
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    className="flex-1 text-gray-900"
+                />
+              </View>
+            </View>
 
-          {/* Divider */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 16 }}>
-            <View style={{ flex: 1, height: 1, backgroundColor: inputBorder }} />
-            <Text style={{ marginHorizontal: 8, color: textGray, fontSize: 12 }}>Or sign up with</Text>
-            <View style={{ flex: 1, height: 1, backgroundColor: inputBorder }} />
-          </View>
+            {/* Password */}
+            <View>
+              <Text className="text-gray-500 text-sm mb-1">Password</Text>
+              <View className="flex-row items-center bg-gray-100 border border-gray-300 rounded-lg px-3 py-2">
+                <MaterialCommunityIcons name="lock-outline" size={22} color="#6B7280" className="mr-2" />
+                <TextInput
+                    value={password}
+                    onChangeText={setPassword}
+                    placeholder="Create a password"
+                    placeholderTextColor="#9CA3AF"
+                    secureTextEntry
+                    autoCapitalize="none"
+                    className="flex-1 text-gray-900"
+                />
+              </View>
+            </View>
 
-          {/* Social Buttons */}
-          <View style={{ space: 12 }}>
-            <TouchableOpacity style={{ width: '100%', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: inputBorder, alignItems: 'center' }}>
-              <Text style={{ color: textGray, fontSize: 14 }}>Continue with Google</Text>
+            {/* Confirm Password */}
+            <View>
+              <Text className="text-gray-500 text-sm mb-1">Confirm Password</Text>
+              <View className="flex-row items-center bg-gray-100 border border-gray-300 rounded-lg px-3 py-2">
+                <MaterialCommunityIcons name="lock-check-outline" size={22} color="#6B7280" className="mr-2" />
+                <TextInput
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    placeholder="Confirm password"
+                    placeholderTextColor="#9CA3AF"
+                    secureTextEntry
+                    autoCapitalize="none"
+                    className="flex-1 text-gray-900"
+                />
+              </View>
+            </View>
+
+            {/* Signup Button */}
+            <TouchableOpacity onPress={handleSignup} disabled={isLoading}>
+              <LinearGradient
+                  colors={['#4F46E5', '#6366F1']}
+                  className="w-full py-3 rounded-lg items-center mt-4"
+              >
+                <Text className="text-white font-semibold">
+                  {isLoading ? 'Creating Account...' : 'Create Account'}
+                </Text>
+              </LinearGradient>
             </TouchableOpacity>
-            <TouchableOpacity style={{ width: '100%', padding: 12, borderRadius: 10, borderWidth: 1, borderColor: inputBorder, alignItems: 'center' }}>
-              <Text style={{ color: textGray, fontSize: 14 }}>Continue with Apple</Text>
-            </TouchableOpacity>
-          </View>
 
-          {/* Login Link */}
-          <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: 16 }}>
-            <Text style={{ color: textGray, fontSize: 14 }}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => route.push('/(auth)/login')}>
-              <Text style={{ color: buttonColor, fontSize: 14, fontWeight: '600' }}>Sign In</Text>
-            </TouchableOpacity>
+            {/* Login Link */}
+            <View className="flex-row justify-center mt-4">
+              <Text className="text-gray-500 text-sm">Already have an account? </Text>
+              <Pressable onPress={() => router.push('/(auth)/login')}>
+                <Text className="text-blue-500 text-sm font-semibold">Sign In</Text>
+              </Pressable>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+
+        {/* Toast Container */}
+        <Toast config={toastConfig} />
+      </KeyboardAvoidingView>
   );
 }

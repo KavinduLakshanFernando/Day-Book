@@ -65,7 +65,7 @@ export const fetchNoteById = async (id: string): Promise<Note | null> => {
         const notedocref = doc(db, "notes", id);
         const docSnap = await getDoc(notedocref);
         if (docSnap.exists()) {
-            return { ...docSnap.data(), id: docSnap.id } as Note;
+            return docSnap.data() as Note;
         } else {
             return null;
         }

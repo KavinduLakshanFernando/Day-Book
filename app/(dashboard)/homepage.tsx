@@ -1,145 +1,146 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { HomeIcon, BookOpenIcon, Cog6ToothIcon, PlusIcon } from "react-native-heroicons/outline";
-import { router } from "expo-router";
-import { Edit2, Trash2 } from "lucide-react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { deleteNote, fetchNotes } from "@/services/noteService";
-import { Note } from "@/type/note";
-import { auth, db } from "@/firebase";
+import {router, useRouter} from "expo-router";
 import { collection, onSnapshot } from "firebase/firestore";
+import { auth, db } from "@/firebase";
+import { deleteNote } from "@/services/noteService";
+import { Note } from "@/type/note";
+import Toast from "react-native-toast-message";
+import { MaterialCommunityIcons, Feather, Ionicons } from "@expo/vector-icons";
 
 export default function DiaryAppHomePage() {
-  const bgGradient = ["#111827", "#1f2937"];
-  const cardBg = "#1F2937";
-  const cardBorder = "#374151";
-  const textColor = "#F3F4F6";
-  const textGray = "#D1D5DB";
-
+  const router = useRouter();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-  setLoading(true);
-
-  const unsubscribe = onSnapshot(
-    collection(db, "notes"),
-    (querySnapshot) => {
+    setLoading(true);
+    const unsubscribe = onSnapshot(collection(db, "notes"), (querySnapshot) => {
       const allNotes = querySnapshot.docs
-        .filter((doc) => doc.data().uId === auth.currentUser?.uid)
-        .map(
-          (doc) =>
-            ({
-            
-              ...doc.data(), id: doc.id
-            } as Note)
-
-        )
-        .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-      console.log("Fetched notes:", allNotes);
-      // Update state
+          .filter((doc) => doc.data().uId === auth.currentUser?.uid)
+          .map((doc) => ({ ...doc.data(), id: doc.id } as Note))
+          .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 
       setNotes(allNotes);
       setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteNote(id);
+      Toast.show({
+        type: "success",
+        text1: "Note Deleted",
+        text2: "Your note has been removed 🗑️",
+      });
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Delete Failed",
+        text2: "Something went wrong ❌",
+      });
     }
-  );
+  };
 
-  // cleanup function
-  return () => unsubscribe();
-}, []);
-
-
-
-const handleDelete = async (id: string) => {
-  console.log("Delete", id);
-  try {
-    await deleteNote(id);
-    Alert.alert("Success", "Note deleted successfully");
-  } catch (error) {
-    console.error("Error deleting note:", error);
-    Alert.alert("Error", "Failed to delete note");
-  }
-};
+  const handleEdit = (noteId: string) => {
+    router.push(`/(dashboard)/note/${noteId}`);
+  };
 
   return (
-    <SafeAreaView className="flex-1">
-      <LinearGradient colors={bgGradient} style={{ flex: 1 }}>
+      <SafeAreaView className="flex-1 bg-white">
         {/* Header */}
-        <View className="flex-row items-center justify-between p-4">
-          <Text className="text-xl font-bold text-white flex-1 text-center">My Diary</Text>
-          <TouchableOpacity className="w-12 items-end">
-            <Cog6ToothIcon size={28} color="#F3F4F6" />
+        <View className="flex-row items-center justify-between px-5 py-4 border-b border-gray-200">
+          <Text className="text-xl italic text-gray-1000">📓 My Notebook</Text>
+          <TouchableOpacity>
+            <Ionicons name="settings-outline" size={26} color="#374151" />
           </TouchableOpacity>
         </View>
 
         {/* Recent Entries */}
-        <ScrollView className="flex-1 px-4">
-          <Text className="text-2xl font-bold mt-4 mb-2 text-white">Recent Entries</Text>
+        <ScrollView className="flex-1 px-5">
+          <Text className="text-2xl font-bold text-gray-800 mt-4 mb-3">Recent Notes</Text>
 
           {loading ? (
-            <View className="flex-1 justify-center items-center mt-10">
-              <ActivityIndicator size="large" color="#2563EB" />
-              <Text className="text-gray-400 mt-2">Loading notes...</Text>
-            </View>
-          ) : notes.length === 0 ? (
-            <Text className="text-gray-400 text-center mt-10">No notes yet. Start by adding one!</Text>
-          ) : (
-            notes.map((note) => (
-              <View key={note.id} className="mb-4">
-                <View
-                  style={{ backgroundColor: cardBg, borderColor: cardBorder }}
-                  className="rounded-3xl p-4 shadow-lg border"
-                >
-                  <Text style={{ color: textColor }} className="text-lg font-bold">{note.title}</Text>
-                  <Text style={{ color: textGray }} className="text-sm mt-2 leading-5">{note.description}</Text>
-
-                  <View className="flex-row justify-between items-center mt-3">
-                    <Text style={{ color: textGray }} className="text-xs">{note.date}</Text>
-                    <View className="flex-row space-x-4">
-                      <TouchableOpacity onPress={() => console.log("Edit", note.id)}>
-                        <Edit2 size={22} color="#3B82F6" />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => handleDelete(note.id || "")}>
-                        <Trash2 size={22} color="#EF4444" />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
+              <View className="flex-1 items-center mt-10">
+                <ActivityIndicator size="large" color="#2563EB" />
+                <Text className="text-gray-500 mt-2">Loading notes...</Text>
               </View>
-            ))
+          ) : notes.length === 0 ? (
+              <View className="flex-1 items-center mt-10">
+                <MaterialCommunityIcons name="notebook-outline" size={50} color="#9CA3AF" />
+                <Text className="text-gray-500 mt-3 text-lg">No notes yet</Text>
+                <Text className="text-gray-400 text-sm">Start by adding your first note ✏️</Text>
+              </View>
+          ) : (
+              notes.map((note) => (
+                  <View key={note.id} className="mb-4">
+                    <TouchableOpacity
+                        className="bg-gray-50 rounded-2xl p-4 shadow border border-gray-200"
+                        activeOpacity={0.8}
+                        onPress={() => handleEdit(note.id!)}
+                    >
+                      <Text className="text-lg font-bold text-gray-900">{note.title}</Text>
+                      <Text className="text-sm text-gray-600 mt-1" numberOfLines={3}>
+                        {note.description}
+                      </Text>
+
+                      <View className="flex-row justify-between items-center mt-3">
+                        <Text className="text-xs text-gray-400">{note.date}</Text>
+                        <View className="flex-row space-x-3">
+                          <TouchableOpacity
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                handleEdit(note.id!);
+                              }}
+                          >
+                            <Feather name="edit-2" size={20} color="#2563EB" />
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                handleDelete(note.id!);
+                              }}
+                          >
+                            <Feather name="trash-2" size={20} color="#EF4444" />
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+              ))
           )}
         </ScrollView>
 
         {/* Floating Add Button */}
         <TouchableOpacity
-          className="absolute bottom-24 right-5 w-16 h-16 rounded-full shadow-lg"
-          onPress={() => router.push("/(dashboard)/note/addNotepage")}
+            className="absolute bottom-24 right-6 w-16 h-16 rounded-full shadow-lg bg-blue-500 items-center justify-center"
+            onPress={() => router.push("/(dashboard)/note/new")}
         >
-          <LinearGradient 
-            colors={["#2563EB", "#1D4ED8"]}
-            style={{ flex: 1, borderRadius: 32, alignItems: "center", justifyContent: "center" }}
-          >
-            <PlusIcon size={32} color="white" />
-          </LinearGradient>
+          <Ionicons name="add" size={32} color="white" />
         </TouchableOpacity>
 
         {/* Bottom Navigation */}
-        <View style={{ backgroundColor: "#111827" }} className="flex-row border-t border-gray-700 px-4 py-2">
-          <TouchableOpacity className="flex-1 items-center">
-            <HomeIcon size={24} color="#2563EB" />
-            <Text className="text-xs font-bold text-blue-500">Home</Text>
+        <View className="flex-row border-t border-gray-200 bg-white px-4 py-2" >
+          <TouchableOpacity className="flex-1 items-center" onPress={() => router.push("/(dashboard)/homepage")}>
+            <Ionicons name="home" size={24} color="#2563EB" />
+            <Text className="text-xs font-bold text-blue-600">Home</Text>
           </TouchableOpacity>
-          <TouchableOpacity className="flex-1 items-center" onPress={() => router.push("/calender")}>
-            <BookOpenIcon size={24} color="#9CA3AF" />
-            <Text className="text-xs text-gray-400">Entries</Text>
+          <TouchableOpacity className="flex-1 items-center" onPress={() => router.push("/calender/calender")}>
+            <Ionicons name="calendar-outline" size={24} color="#9CA3AF" />
+            <Text className="text-xs text-gray-400">Calendar</Text>
           </TouchableOpacity>
-          <TouchableOpacity className="flex-1 items-center">
-            <Cog6ToothIcon size={24} color="#9CA3AF" />
-            <Text className="text-xs text-gray-400">Settings</Text>
+          <TouchableOpacity className="flex-1 items-center" onPress={() => router.push("profile/profile")}>
+            <Ionicons name="person-outline" size={24} color="#9CA3AF" />
+            <Text className="text-xs text-gray-400">Profile</Text>
           </TouchableOpacity>
         </View>
-      </LinearGradient>
-    </SafeAreaView>
+
+        {/* Toast */}
+        <Toast />
+      </SafeAreaView>
   );
 }
