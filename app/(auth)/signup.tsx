@@ -73,17 +73,17 @@ export default function SignupScreenLight() {
       return;
     }
 
-    if (!acceptTerms) {
-      Toast.show({
-        type: 'error',
-        text1: 'Terms Not Accepted',
-        text2: 'Please accept the terms & conditions',
-        position: 'top',
-        topOffset: 50,
-        visibilityTime: 3000,
-      });
-      return;
-    }
+    // if (!acceptTerms) {
+    //   Toast.show({
+    //     type: 'error',
+    //     text1: 'Terms Not Accepted',
+    //     text2: 'Please accept the terms & conditions',
+    //     position: 'top',
+    //     topOffset: 50,
+    //     visibilityTime: 3000,
+    //   });
+    //   return;
+    // }
 
     setIsLoading(true);
 
