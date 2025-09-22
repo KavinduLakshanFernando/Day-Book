@@ -188,7 +188,7 @@ const Index = () => {
           
           {/* Primary Button */}
           <TouchableOpacity
-            onPress={() => router.push("/(auth)/login")}
+            onPress={() =>  router.push("/(auth)/login")}
             style={{
               width: '100%',
               maxWidth: 280,
